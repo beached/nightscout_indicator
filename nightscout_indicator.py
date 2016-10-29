@@ -27,6 +27,7 @@ __revision__ = "$Id$"
 __version__ = "0.1"
 
 import urllib3
+import requests
 import signal
 import json
 import gi
@@ -89,12 +90,11 @@ class Indicator():
         return menu
 
     def fetch_ns_status(self):
-        http = urllib3.PoolManager()
         url = urljoin(self.config.get('main', 'night_scout_url_base'), '/pebble')
-        r = http.request('GET', url)
-        if 200 != r.status:
+        r = requests.get( url )
+        if 200 != r.status_code:
             return "No Data"
-        glucose = json.loads(r.data.decode('utf-8'))['bgs'][0]['sgv']
+        glucose = json.loads(r.text)['bgs'][0]['sgv']
         return glucose
 
     def fetch_ns(self):
