@@ -29,7 +29,6 @@ __version__ = "0.1"
 import urllib3
 import requests
 import signal
-import json
 import gi
 import time
 import os
@@ -90,11 +89,16 @@ class Indicator():
         return menu
 
     def fetch_ns_status(self):
+        glucose = "No Data"
         url = urljoin(self.config.get('main', 'night_scout_url_base'), '/pebble')
         r = requests.get( url )
         if 200 != r.status_code:
             return "No Data"
-        glucose = json.loads(r.text)['bgs'][0]['sgv']
+        try:
+            glucose = r.json( )['bgs'][0]['sgv']
+        except:
+            pass
+
         return glucose
 
     def fetch_ns(self):
