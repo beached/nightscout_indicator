@@ -45,7 +45,7 @@ from gi.repository import Gtk, AppIndicator3, GObject
 from threading import Thread
 from urllib.parse import urljoin
 
-configfile_name = os.path.join(os.path.expanduser("~"), '.ns_indicator.yaml')
+configfile_name = os.path.join(os.path.expanduser("~"), '.nightscout_indicator.yaml')
 
 if not os.path.isfile(configfile_name):
     config = configparser.ConfigParser()
