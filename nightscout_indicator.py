@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # MIT License
 # 
 # Copyright (c) 2016 Darrell Wright
@@ -21,6 +20,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+__author__ = "Darrell Wright"
+__copyright__ = "Copyright (C) 2016 Darrell Wright"
+
+__revision__ = "$Id$"
+__version__ = "0.1"
 
 import urllib3
 import signal
@@ -30,33 +34,39 @@ import time
 import os
 import io
 import configparser
+import sys
+
+from multiprocessing import Pool
+
 gi.require_version('Gtk', '3.0')
-gi.require_version('AppIndicator3', '0.1') 
+gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, AppIndicator3, GObject
 from threading import Thread
 from urllib.parse import urljoin
 
-configfile_name = os.path.join(os.path.expanduser("~"), '.ns_indicator.yaml' )
+configfile_name = os.path.join(os.path.expanduser("~"), '.ns_indicator.yaml')
 
 if not os.path.isfile(configfile_name):
-    config = configparser.ConfigParser( )
+    config = configparser.ConfigParser()
     config.add_section('main')
     config.set('main', 'night_scout_url_base', 'https://servername.dom/')
-    with open( configfile_name, 'w' ) as f:
-        config.write( f )
-    print( 'Please update ' + configfile_name )
+    with open(configfile_name, 'w') as f:
+        config.write(f)
+    print('Please update ' + configfile_name)
     quit()
+
 
 class Indicator():
     def __init__(self):
 
         self.app = 'Nightscout Indicator'
-        iconpath = "/opt/abouttime/icon/indicator_icon.png"
-        self.config = configparser.RawConfigParser( )
-        self.config.read( configfile_name )
+        iconpath = "nightscout_indicator_icon"
+        self.config = configparser.RawConfigParser()
+        self.config.read(configfile_name)
 
-        self.indicator = AppIndicator3.Indicator.new( self.app, iconpath, AppIndicator3.IndicatorCategory.OTHER )
+        #self.indicator = AppIndicator3.Indicator.new(self.app, iconpath, AppIndicator3.IndicatorCategory.OTHER)
+        self.indicator = AppIndicator3.Indicator.new_with_path(self.app, iconpath, AppIndicator3.IndicatorCategory.OTHER,  os.path.dirname(os.path.realpath(__file__) ) )
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.create_menu())
         self.indicator.set_label("NO Data", self.app)
@@ -79,28 +89,40 @@ class Indicator():
         return menu
 
     def fetch_ns_status(self):
-        http = urllib3.PoolManager( )
-        url = urljoin( self.config.get( 'main', 'night_scout_url_base' ), '/pebble' )
-        r = http.request( 'GET', url )
+        http = urllib3.PoolManager()
+        url = urljoin(self.config.get('main', 'night_scout_url_base'), '/pebble')
+        r = http.request('GET', url)
         if 200 != r.status:
             return "No Data"
-        glucose = json.loads( r.data.decode( 'utf-8' ))['bgs'][0]['sgv']
+        glucose = json.loads(r.data.decode('utf-8'))['bgs'][0]['sgv']
         return glucose
 
     def fetch_ns(self):
         t = 2
         while True:
-            mention = self.fetch_ns_status( )
+            mention = self.fetch_ns_status()
             # apply the interface update using  GObject.idle_add()
-            GObject.idle_add( self.indicator.set_label, mention, self.app, priority=GObject.PRIORITY_DEFAULT )
+            GObject.idle_add(self.indicator.set_label, mention, self.app, priority=GObject.PRIORITY_DEFAULT)
             time.sleep(60)
             t += 1
 
     def stop(self, source):
         Gtk.main_quit()
 
-Indicator()
-# this is where we call GObject.threads_init()
-GObject.threads_init()
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-Gtk.main()
+    def run(self):
+        Gtk.main()
+
+    def signal_exit(self, signum, frame):
+        print( 'Recieved signal: ', signum )
+        print( 'Quitting...' )
+        self.stop( )
+
+if __name__ == '__main__':
+    try:
+        app = Indicator( )
+        signal.signal(signal.SIGTERM, app.signal_exit)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        app.run()
+    except KeyboardInterrupt:
+        app.stop()
+
