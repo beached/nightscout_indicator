@@ -33,8 +33,10 @@ import gi
 import time
 import os
 import io
+import math
 import configparser
 import sys
+import datetime
 
 from multiprocessing import Pool
 
@@ -64,12 +66,11 @@ class Indicator():
         iconpath = "nightscout_indicator_icon"
         self.config = configparser.RawConfigParser()
         self.config.read(configfile_name)
-
         #self.indicator = AppIndicator3.Indicator.new(self.app, iconpath, AppIndicator3.IndicatorCategory.OTHER)
         self.indicator = AppIndicator3.Indicator.new_with_path(self.app, iconpath, AppIndicator3.IndicatorCategory.OTHER,  os.path.dirname(os.path.realpath(__file__) ) )
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.create_menu())
-        self.indicator.set_label("NO Data", self.app)
+        self.indicator.set_label("No Data", self.app)
         # the thread:
         self.update = Thread(target=self.fetch_ns)
         # daemonize the thread to make the indicator stopable
@@ -96,14 +97,21 @@ class Indicator():
             return "No Data"
 
         arrows = { 0:'', 1:'⇈', 2: '↑', 3:'↗', 4:'→', 5:'↘', 6: '↓', 7: '⇊' }
+        glucose = 'No Data'
+       # try:
+        j = r.json( )
+        bg_info = j['bgs'][0]
+        last_info = math.floor((int( j['status'][0]['now'] ) - int(bg_info['datetime']))/60000)
+        sgv = bg_info['sgv']
+        if float( sgv ) == 0.7:
+            result = 'No Signal'
+        else:
+            result = bg_info['sgv'] + ' ' + arrows[bg_info['trend']] + ' (' + bg_info['bgdelta'] + ') '
 
-        try:
-            j = r.json( )['bgs'][0]
-            result = j['sgv'] + " " + arrows[j['trend']] + ' (' + j['bgdelta'] + ')'
-
-            glucose = result
-        except:
-            pass
+        result = result + '[' + str(last_info) + ']'
+        glucose = result
+        #except:
+        #    pass
 
         return glucose
 
