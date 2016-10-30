@@ -26,13 +26,13 @@ __copyright__ = "Copyright (C) 2016 Darrell Wright"
 __revision__ = "$Id$"
 __version__ = "0.1"
 
-import urllib3
 import requests
 import signal
 import gi
 import time
 import os
 import io
+import socks
 import math
 import configparser
 import sys
@@ -46,6 +46,7 @@ gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, AppIndicator3, GObject
 from threading import Thread
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 
 configfile_name = os.path.join(os.path.expanduser("~"), '.nightscout_indicator.yaml')
 
@@ -56,6 +57,10 @@ if not os.path.isfile(configfile_name):
     config.set('main', 'show_trend', 'True' )
     config.set('main', 'show_bgdelta', 'True' )
     config.set('main', 'show_age', 'True' )
+    config.add_section('proxy')
+    config.set('proxy', 'http', '' )
+    config.set('proxy', 'https', '' )
+
     with open(configfile_name, 'w') as f:
         config.write(f)
     print('Please update ' + configfile_name)
@@ -118,14 +123,20 @@ class Indicator():
 
     def fetch_ns_status( self ):
         glucose = "No Data"
-        try:
-            url = urljoin( self.config.get('main', 'night_scout_url_base'), '/pebble')
+        #try:
+        url = urljoin( self.config.get('main', 'night_scout_url_base'), '/pebble')
+        scheme = urlparse( url ).scheme 
+
+        if self.config.get( 'proxy', scheme ) != '':
+            r = requests.get( url, proxies={ scheme : self.config.get('proxy', scheme) } )
+        else:
             r = requests.get( url )
 
-            if 200 != r.status_code:
-                return 'No Data'
-        except:
-            pass
+        if 200 != r.status_code:
+            return 'No Data'
+        #except:
+        #    pass
+
         result = 'No Data'
         try:
             result = self.build_display( r.json( ) )
