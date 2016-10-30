@@ -94,8 +94,14 @@ class Indicator():
         r = requests.get( url )
         if 200 != r.status_code:
             return "No Data"
+
+        arrows = { 0:'', 1:'⇈', 2: '↑', 3:'↗', 4:'→', 5:'↘', 6: '↓', 7: '⇊' }
+
         try:
-            glucose = r.json( )['bgs'][0]['sgv']
+            j = r.json( )['bgs'][0]
+            result = j['sgv'] + " " + arrows[j['trend']] 
+
+            glucose = result
         except:
             pass
 
