@@ -99,7 +99,7 @@ class Indicator():
 
         try:
             j = r.json( )['bgs'][0]
-            result = j['sgv'] + " " + arrows[j['trend']] 
+            result = j['sgv'] + " " + arrows[j['trend']] + ' (' + j['bgdelta'] + ')'
 
             glucose = result
         except:
