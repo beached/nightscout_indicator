@@ -118,18 +118,19 @@ class Indicator():
 
     def fetch_ns_status( self ):
         glucose = "No Data"
-        url = urljoin( self.config.get('main', 'night_scout_url_base'), '/pebble')
-        r = requests.get( url )
+        try:
+            url = urljoin( self.config.get('main', 'night_scout_url_base'), '/pebble')
+            r = requests.get( url )
 
-        if 200 != r.status_code:
-            return 'No Data'
-
+            if 200 != r.status_code:
+                return 'No Data'
+        except:
+            pass
         result = 'No Data'
-        #try:
-        tmp = self.build_display( r.json( ) )
-        result = tmp
-        #except:
-        #    pass
+        try:
+            result = self.build_display( r.json( ) )
+        except:
+            pass
         return result
 
     def fetch_ns( self ):
