@@ -24,7 +24,7 @@ __author__ = "Darrell Wright"
 __copyright__ = "Copyright (C) 2016 Darrell Wright"
 
 __revision__ = "$Id$"
-__version__ = "0.1"
+__version__ = "0.2"
 
 import requests
 import signal
@@ -110,7 +110,7 @@ class Indicator():
         else:
             result = sgv
             if self.config.get('main', 'show_trend' ) in [ 'True', 'true', 'yes', 'Yes' ]:
-                arrows = { 0:'', 1:'⇈', 2: '↑', 3:'↗', 4:'→', 5:'↘', 6: '↓', 7: '⇊' }
+                arrows = { 0:'', 1:u'⇈', 2:u'↑', 3:u'↗', 4:u'→', 5:u'↘', 6:u'↓', 7:u'⇊' }
                 result += ' ' + arrows[bg_info['trend']] 
 
             if self.config.get('main', 'show_bgdelta' ) in [ 'True', 'true', 'yes', 'Yes' ]:
