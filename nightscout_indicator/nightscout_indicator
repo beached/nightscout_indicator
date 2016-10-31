@@ -26,7 +26,6 @@ import os, sys
 import subprocess
 
 if __name__ == "__main__":
-#    subprocess.call([sys.executable, 'nightscout_indicator.py'] + sys.argv[1:])
     folder_name =  os.path.dirname(os.path.realpath(__file__))
     file_name = os.path.join( folder_name, "nightscout_indicator.py" )
     pid = subprocess.Popen( [file_name] ).pid
