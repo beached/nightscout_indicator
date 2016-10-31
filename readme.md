@@ -2,7 +2,7 @@
 
 This will display your current blood sugar from a Nightscout Server
 
-![Example Screenshot](./screen_shot.png?raw=True) - Normal usage
+![Normal Usage](./screen_shot_normal.png?raw=True) - Normal usage
 
 ![Calibration Needed Screenshot](./screen_shot_calibration_needed.png?raw=True) - Insulin sensors needs calibrating
 
