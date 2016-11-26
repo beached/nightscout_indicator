@@ -138,10 +138,10 @@ class Indicator():
         #    pass
 
         result = 'No Data'
-        try:
-            result = self.build_display( r.json( ) )
-        except:
-            pass
+        #try:
+        result = self.build_display( r.json( ) )
+        #except:
+        #    pass
         return result
 
     def fetch_ns( self ):
